@@ -1,0 +1,9 @@
+name: AWSLambda
+description: Criação de Funções como Serviço na estrutuda da Amazon Web Server
+types:
+  - app-template
+inputs:
+  - label: Project name
+    type: text
+    name: project_name
+    default: project-name

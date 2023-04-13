@@ -1,0 +1,16 @@
+{
+  "name": "{{inputs.gcp_cloud_function_name}}",
+  "version": "0.0.1",
+  "description": "A simple cloud function with Node.js",
+  "author": "stk-zunit-faas",
+  "main": "index.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx functions-framework --target={{inputs.gcp_cloud_function_name}} --signature-type=cloudevent"
+  },
+  "devDependencies": {
+    "@google-cloud/functions-framework": "^3.0.0"
+  }
+}

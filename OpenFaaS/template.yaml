@@ -1,0 +1,9 @@
+name: OpenFaaS
+description: Criação de Funções como Serviço na estrutuda da Open FaaS com Kubernetes
+types:
+  - app-template
+inputs:
+  - label: Project name
+    type: text
+    name: project_name
+    default: project-name

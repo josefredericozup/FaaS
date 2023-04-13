@@ -1,0 +1,9 @@
+name: AzureFunctions
+description: Criação de Funções como Serviço na estrutuda da Microsoft Azure
+types:
+  - app-template
+inputs:
+  - label: Project name
+    type: text
+    name: project_name
+    default: project-name

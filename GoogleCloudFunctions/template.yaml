@@ -1,0 +1,187 @@
+name: GoogleCloudFunctions
+description: Criação de Funções como Serviço na estrutuda da Google Cloud Platform
+types:
+  - app-template
+inputs:
+  - label: Qual o nome da função?
+    type: text
+    name: gcp_cloud_function_name
+    require: true
+  - label: Qual o tipo de Cloud Function?
+    type: text
+    name: gcp_cloud_function_type
+    default: HTTP
+    required: true
+    items:
+      - HTTP
+      - Event
+  - label: Qual a geração Cloud Function?
+    type: text
+    name: gcp_cloud_function_gen
+    default: 2nd gen
+    required: true
+    items:
+      - 2nd gen
+      - 1st gen
+  - label: Qual a linguagem de programação?
+    type: text
+    name: gcp_cloud_function_language
+    default: Node.js
+    required: true
+    items:
+      - Node.js
+      - Python
+      - Go
+      - Java
+      - C#
+      - Ruby
+      - PHP
+
+  # Node.js
+  - label: Qual versão do Node.js deseja utilizar?
+    type: text
+    name: gcp_cloud_function_node_version
+    default: 18
+    required: true
+    items:
+      - 18
+      - 16
+      - 14
+      - 12
+      - 10
+    condition:
+      variable: gcp_cloud_function_language
+      operator: "=="
+      value: Node.js
+  - label: Qual sistema de módulos deseja utilizar?
+    type: text
+    name: gcp_cloud_function_node_system_module
+    default: "CommonJS"
+    required: true
+    items:
+      - "CommonJS"
+      - "ES Modules"
+    condition:
+      variable: gcp_cloud_function_node_version
+      operator: ">="
+      value: "14"
+  #
+
+  # Depêndencias
+  - label: Gostaria de instalar as depêndencias durante o processo de criação?
+    type: bool
+    name: gcp_cloud_function_install_dependencies
+    default: true
+    required: true
+  - label: Qual gerenciador de pacotes você deseja utilizar?
+    type: text
+    name: gcp_cloud_function_node_package_manager
+    default: NPM
+    required: true
+    items:
+      - NPM
+      - YARN
+    condition:
+      variable: gcp_cloud_function_language
+      operator: "=="
+      value: "Node.js"
+  #
+
+computed-inputs:
+  is_node_and_install_dependencies_with_npm: "{{ gcp_cloud_function_install_dependencies == true and gcp_cloud_function_node_package_manager == 'NPM' }}"
+  is_node_and_install_dependencies_with_yarn: "{{ gcp_cloud_function_install_dependencies == true and gcp_cloud_function_node_package_manager == 'YARN' }}"
+  is_node_http_and_commonjs: "{{ gcp_cloud_function_language == 'Node.js' and gcp_cloud_function_type == 'HTTP' and gcp_cloud_function_node_system_module == 'CommonJS'}}"
+  is_node_http_and_esm: "{{ gcp_cloud_function_language == 'Node.js' and gcp_cloud_function_type == 'HTTP' and  gcp_cloud_function_node_system_module == 'ES Modules'}}"
+  is_node_event_v1_and_commonjs: "{{ gcp_cloud_function_language == 'Node.js' and gcp_cloud_function_type == 'Event' and gcp_cloud_function_gen == '1st gen' and gcp_cloud_function_node_system_module == 'CommonJS'}}"
+  is_node_event_v1_and_esm: "{{ gcp_cloud_function_language == 'Node.js' and gcp_cloud_function_type == 'Event' and gcp_cloud_function_gen == '1st gen' and  gcp_cloud_function_node_system_module == 'ES Modules'}}"
+  is_node_event_v2_and_commonjs: "{{ gcp_cloud_function_language == 'Node.js' and gcp_cloud_function_type == 'Event' and gcp_cloud_function_gen == '2nd gen' and gcp_cloud_function_node_system_module == 'CommonJS'}}"
+  is_node_event_v2_and_esm: "{{ gcp_cloud_function_language == 'Node.js' and gcp_cloud_function_type == 'Event' and gcp_cloud_function_gen == '2nd gen' and  gcp_cloud_function_node_system_module == 'ES Modules'}}"
+
+hooks:
+  - type: run-script
+    trigger: before-render
+    working-dir: "./"
+    script: ./scripts/process_inputs.py
+
+  # Node.js
+  - type: render-templates
+    trigger: after-render
+    path: base-source-code-templates/http/nodejs/commonjs
+    condition:
+      variable: is_node_http_and_commonjs
+      operator: "=="
+      value: "True"
+  - type: render-templates
+    trigger: after-render
+    path: base-source-code-templates/http/nodejs/esm
+    condition:
+      variable: is_node_http_and_esm
+      operator: "=="
+      value: "True"
+  - type: render-templates
+    trigger: after-render
+    path: base-source-code-templates/event-driven/nodejs/v1/commonjs
+    condition:
+      variable: is_node_event_v1_and_commonjs
+      operator: "=="
+      value: "True"
+  - type: render-templates
+    trigger: after-render
+    path: base-source-code-templates/event-driven/nodejs/v1/esm
+    condition:
+      variable: is_node_event_v1_and_esm
+      operator: "=="
+      value: "True"
+  - type: render-templates
+    trigger: after-render
+    path: base-source-code-templates/event-driven/nodejs/v2/commonjs
+    condition:
+      variable: is_node_event_v2_and_commonjs
+      operator: "=="
+      value: "True"
+  - type: render-templates
+    trigger: after-render
+    path: base-source-code-templates/event-driven/nodejs/v2/commonjs
+    condition:
+      variable: is_node_event_v2_and_esm
+      operator: "=="
+      value: "True"
+  - type: run
+    trigger: after-render
+    working-dir: "./"
+    linux:
+      - echo -e "\n- Instalando dependências...\n"
+      - npm install
+      - echo -e "\n- Dependências intaladas com sucesso!\n"
+    windows:
+      - cmd /C echo -e "\n- Instalando dependências...\n"
+      - cmd /C npm install
+      - cmd /C echo -e "\n- Dependências intaladas com sucesso!\n"
+    mac:
+      - echo -e "\n- Instalando dependências...\n"
+      - npm install
+      - echo -e "\n- Dependências intaladas com sucesso!\n"
+    condition:
+      variable: is_node_and_install_dependencies_with_npm
+      operator: "=="
+      value: "True"
+  - type: run
+    trigger: after-render
+    working-dir: "./"
+    linux:
+      - echo -e "\n- Instalando dependências...\n"
+      - yarn install
+      - echo -e "\n- Dependências intaladas com sucesso!\n"
+    windows:
+      - cmd /C echo -e "\n- Instalando dependências...\n"
+      - cmd /C yarn install
+      - cmd /C echo -e "\n- Dependências intaladas com sucesso!\n"
+    mac:
+      - echo -e "\n- Instalando dependências...\n"
+      - yarn install
+      - echo -e "\n- Dependências intaladas com sucesso!\n"
+    condition:
+      variable: is_node_and_install_dependencies_with_yarn
+      operator: "=="
+      value: "True"
+  #
